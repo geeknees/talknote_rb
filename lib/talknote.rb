@@ -1,4 +1,9 @@
-require "talknote/version"
+# frozen_string_literal: true
+
+require 'oauth2'
+
+require 'talknote/version'
+require 'talknote/client'
 
 module Talknote
   class Error < StandardError; end

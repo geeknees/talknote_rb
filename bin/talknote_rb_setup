@@ -1,0 +1,151 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "talknote"
+
+require 'pp'
+require 'uri'
+require 'json'
+require 'webrick'
+require 'optparse'
+
+options = {}
+required = []
+
+src = File.basename($PROGRAM_NAME)
+state = ('a'..'z').to_a.sample(32).join
+path = '/oauth/callback'
+
+optp = OptionParser.new do |opts|
+  opts.banner = "Usage: #{src} "\
+    "--id CLIENT_ID --secret CLIENT_SECRET\n\n"
+
+  required << :id
+  opts.on('-i', '--id CLIENT_ID', 'Client ID (required)') do |opt|
+    options[:id] = opt
+  end
+
+  required << :secret
+  opts.on('-s', '--secret CLIENT_SECRET', 'Client secret (required)') do |opt|
+    options[:secret] = opt
+  end
+
+  options[:host] = '127.0.0.1'
+  desc_host = 'Callback host (defaults to 127.0.0.1) n.b this allows you to '\
+    'run this tool on a remote machine and have the authorisation code go '\
+    'there; the callback HTTP server always binds to all available network '\
+    'interfaces irrespective of this value'
+  opts.on('-h', '--host 127.0.0.1', String, desc_host) do |opt|
+    options[:host] = opt
+  end
+
+  options[:port] = 3000
+  desc_port = 'Callback port (defaults to 3000)'
+  opts.on('-p', '--port 3000', Integer, desc_port) do |opt|
+    options[:port] = opt
+  end
+end
+
+begin
+  optp.parse!
+rescue OptionParser::MissingArgument => err
+  STDERR.puts err
+  exit 1
+end
+
+required.each do |arg|
+  next unless options[arg].nil?
+
+  STDERR.puts "Error: missing required argument #{arg}. "\
+    "See #{src} --help for help."
+  exit 1
+end
+
+
+client = OAuth2::Client.new(
+  options[:id],
+  options[:secret],
+  site: 'https://oauth.talknote.com',
+  authorize_url: '/oauth/authorize',
+  token_url: 'oauth/token'
+)
+
+redirect_uri = "http://#{options[:host]}:#{options[:port]}#{path}"
+scope = %w(talknote.timeline.read
+talknote.timeline.write
+talknote.timeline.message.read
+talknote.timeline.message.write
+talknote.timeline.unread
+talknote.group talknote.group.read
+talknote.group.write
+talknote.group.unread
+talknote.group.message.read
+talknote.group.message.write
+talknote.direct_message
+talknote.direct_message.read
+talknote.direct_message.write
+talknote.direct_message.unread
+talknote.direct_message.message.read
+talknote.direct_message.message.write
+talknote.user.read talknote.user.write
+talknote.allfeed.read talknote.allfeed.unread).join(' ')
+
+code_args = {
+  redirect_uri: redirect_uri,
+  scope: scope,
+  state: state
+}
+
+url = client.auth_code.authorize_url(code_args)
+
+puts ''
+puts "Go to URL: #{url}"
+puts ''
+
+puts 'Starting server - use Ctrl+C to stop'
+puts ''
+
+server_options = {
+  Port: options[:port]
+}
+
+unless options[:debug]
+  server_options[:Logger] = WEBrick::Log.new(File.open(File::NULL, 'w'))
+  server_options[:AccessLog] = []
+end
+
+server = WEBrick::HTTPServer.new(server_options)
+
+server.mount_proc('/') do |req, res|
+  unless req.path == path
+    res.status = 403
+    res.body = "Invalid callback path - expecting #{path}"
+    next
+  end
+
+  unless req.query['state'] == state
+    res.status = 400
+    res.body = 'Invalid state in callback'
+    next
+  end
+
+  token = client.auth_code.get_token(
+    req.query['code'],
+    grant_type: 'authorization_code',
+    redirect_uri: redirect_uri
+  )
+
+  pp token.to_hash
+  puts ''
+
+  File.write("talknote.json", token.to_hash.to_json)
+
+  res.status = 200
+  res.body = 'You may now close this tab'
+end
+
+trap('INT') do
+  server.shutdown
+end
+
+server.start
