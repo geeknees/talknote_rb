@@ -1,13 +1,7 @@
 # frozen_string_literal: true
 
 require 'talknote'
-
 require 'thor'
-require 'pp'
-require 'uri'
-require 'json'
-require 'webrick'
-require 'optparse'
 
 module Talknote
   class CLI < Thor
@@ -18,7 +12,6 @@ module Talknote
     option 'secret', aliases: 's', type: :string, required: true, banner: 'Client Secret'
     option 'host', aliases: 'h', type: :string, default: '127.0.0.1', banner: 'Callback host'
     option 'port', aliases: 'p', type: :string, default: '3000', banner: 'Callback port'
-
     def init
       state = ('a'..'z').to_a.sample(32).join
       path = '/oauth/callback'
@@ -111,6 +104,11 @@ module Talknote
       end
 
       server.start
+    end
+
+    desc 'dm', 'Show dm list'
+    def dm
+      pp Talknote::Client.new.dm
     end
 
     class << self

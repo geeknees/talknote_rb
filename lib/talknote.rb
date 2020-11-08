@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'oauth2'
+require 'faraday'
 
 require 'talknote/version'
 require 'talknote/cli'

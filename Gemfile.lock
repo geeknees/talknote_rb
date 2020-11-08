@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     talknote_rb (0.1.0)
+      faraday
       oauth2
       thor
 

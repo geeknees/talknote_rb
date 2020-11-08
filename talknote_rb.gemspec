@@ -27,4 +27,5 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'oauth2'
   spec.add_dependency 'thor'
+  spec.add_dependency 'faraday'
 end

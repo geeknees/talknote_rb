@@ -28,10 +28,16 @@ See doc.
 https://developer.talknote.com/doc/#intro
 
 To set it up, run the following command, then the access_token will be saved in talknote.json.
+
 ```sh
- bundle exec talknote init -i client_id -s client_secret
+bundle exec talknote init -i client_id -s client_secret
 ```
 
+Then, Execute various commands.
+
+```sh
+bundle exec talknote dm
+```
 
 ## Development
 

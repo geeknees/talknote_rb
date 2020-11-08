@@ -1,32 +1,52 @@
 # frozen_string_literal: true
 
+require 'json'
+
 module Talknote
   class Client
-    attr_accessor :client_id, :client_secret, :client_access_token,
-                  :client_refresh_token, :client_token_expires_at
 
-    def initialize(options = {})
-      options.each do |key, value|
-        instance_variable_set("@#{key}", value)
-      end
-
-      yield(self) if block_given?
+    def dm
+      response = conn.get('api/v1/dm')
+      JSON.parse(response.body)
     end
 
-    def oauth_client
-      options = { site: 'https://oauth.talknote.com',
-                  authorize_url: '/oauth/authorize',
-                  token_url: 'oauth/token' }
-      @oauth_client ||= ::OAuth2::Client.new(client_id,
-                                             client_secret,
-                                             options)
+    def dm_list(id)
+      response = conn.get("api/v1/dm/list/#{id}")
+      JSON.parse(response.body)
     end
 
-    def access_token
-      @access_token ||= ::OAuth2::AccessToken.new(oauth_client,
-                                                  client_access_token,
-                                                  refresh_token: client_refresh_token,
-                                                  expires_at: client_token_expires_at)
+    def dm_unread(id)
+      response = conn.get("api/v1/dm/unread/#{id}")
+      JSON.parse(response.body)
     end
+
+    # def dm_post; end
+
+    def group_list(id)
+      response = conn.get("api/v1/group/list/#{id}")
+      JSON.parse(response.body)
+    end
+
+    def dm_unread(did)
+      response = conn.get("api/v1/group/unread/#{id}")
+      JSON.parse(response.body)
+    end
+
+    # def group_post; end
+
+    private
+
+    attr_reader :conn
+
+    def initialize
+      access_token = JSON.parse(
+                        File.read("#{Dir.home}/.config/talknote/token.json")
+                      )['access_token']
+      @conn = Faraday.new(
+        url: 'https://eapi.talknote.com',
+        headers: {'X-TALKNOTE-OAUTH-TOKEN' => access_token}
+      )
+    end
+
   end
 end
