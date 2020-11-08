@@ -3,6 +3,7 @@
 require 'oauth2'
 
 require 'talknote/version'
+require 'talknote/cli'
 require 'talknote/client'
 
 module Talknote
