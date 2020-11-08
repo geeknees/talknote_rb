@@ -30,7 +30,8 @@ module Talknote
                  talknote.timeline.message.read
                  talknote.timeline.message.write
                  talknote.timeline.unread
-                 talknote.group talknote.group.read
+                 talknote.group
+                 talknote.group.read
                  talknote.group.write
                  talknote.group.unread
                  talknote.group.message.read
@@ -42,7 +43,8 @@ module Talknote
                  talknote.direct_message.message.read
                  talknote.direct_message.message.write
                  talknote.user.read talknote.user.write
-                 talknote.allfeed.read talknote.allfeed.unread].join(' ')
+                 talknote.allfeed.read
+                 talknote.allfeed.unread].join(' ')
 
       code_args = {
         redirect_uri: redirect_uri,
