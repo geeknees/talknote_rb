@@ -3,6 +3,22 @@
 require 'bundler/setup'
 require 'talknote'
 
+require 'simplecov'
+require 'simplecov-cobertura'
+
+if ENV['CI']
+  SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
+  SimpleCov.start do
+    add_filter '/spec/'
+  end
+else
+  SimpleCov.start do
+    add_filter '/spec/'
+    enable_coverage :branch
+    primary_coverage :branch
+  end
+end
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
