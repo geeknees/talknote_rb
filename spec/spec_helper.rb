@@ -8,12 +8,8 @@ require 'simplecov-cobertura'
 
 if ENV['CI']
   SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
-  SimpleCov.start do
-    add_filter '/spec/'
-  end
 else
   SimpleCov.start do
-    add_filter '/spec/'
     enable_coverage :branch
     primary_coverage :branch
   end
