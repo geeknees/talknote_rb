@@ -20,6 +20,10 @@ end
 
 def export_dm_to_csv(filename = "dm_export_#{Time.now.strftime('%Y%m%d_%H%M%S')}.csv")
   puts "=== Talknote DM CSV Export ==="
+  puts "⚠️  注意: Export処理は高負荷処理のため、大量のデータがある場合や"
+  puts "    サーバー側の負荷制限により処理が中断される可能性があります。"
+  puts "    処理が止まった場合は、時間をおいて再実行してください。"
+  puts
   puts "Exporting all DM conversations to: #{filename}"
   puts
 
@@ -60,6 +64,9 @@ def export_dm_to_csv(filename = "dm_export_#{Time.now.strftime('%Y%m%d_%H%M%S')}
 
         puts "Processing conversation #{index + 1}/#{dm_conversations.size}: #{conversation_name} (ID: #{conversation_id})"
 
+        # 注意: Export処理は高負荷がかかるため、API制限や負荷制限により処理が停止される可能性があります
+        # レート制限を回避するため、各会話処理前に適切な待機時間を設けています
+
         begin
           # Get messages from this conversation
           messages_response = client.dm_list(conversation_id)
@@ -96,8 +103,9 @@ def export_dm_to_csv(filename = "dm_export_#{Time.now.strftime('%Y%m%d_%H%M%S')}
           ]
         end
 
-        # Add a small delay to avoid rate limiting
-        sleep(0.1) if dm_conversations.size > 10
+        # レート制限対策: サーバーへの負荷を軽減するため、各会話処理後に待機時間を設ける
+        # 大量の会話がある場合やAPI制限が厳しい場合は、この値を調整してください
+        sleep(1)
       end
 
       puts
