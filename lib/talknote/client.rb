@@ -27,7 +27,7 @@ module Talknote
       JSON.parse(response.body)
     end
 
-    def dm_unread(did)
+    def group_unread(id)
       response = conn.get("api/v1/group/unread/#{id}")
       JSON.parse(response.body)
     end
