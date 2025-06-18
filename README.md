@@ -71,13 +71,38 @@ bundle exec talknote init -i your_client_id -s your_client_secret -h localhost -
 
 ### CLI Commands
 
-#### View Direct Messages
+#### Direct Message Commands
 
 ```sh
+# View all DM conversations
 bundle exec talknote dm
-```
 
-This displays a list of your direct message conversations.
+# View messages from a specific DM conversation
+bundle exec talknote dm-list CONVERSATION_ID
+
+# Check unread count for a DM conversation
+bundle exec talknote dm-unread CONVERSATION_ID
+
+# Send a message to a DM conversation
+bundle exec talknote dm-post CONVERSATION_ID "Your message here"
+
+# Create a new DM conversation (optionally with an initial message)
+bundle exec talknote dm-create USER_ID
+bundle exec talknote dm-create USER_ID "Initial message"
+
+# Mark DM conversation as read
+bundle exec talknote dm-mark-read CONVERSATION_ID
+bundle exec talknote dm-mark-read CONVERSATION_ID MESSAGE_ID
+
+# Search DM conversations
+bundle exec talknote dm-search "search query"
+
+# View members of a DM conversation
+bundle exec talknote dm-members CONVERSATION_ID
+
+# Leave a DM conversation
+bundle exec talknote dm-leave CONVERSATION_ID
+```
 
 ### Ruby Client Usage
 
@@ -94,13 +119,29 @@ dm_conversations = client.dm
 puts "DM Conversations: #{dm_conversations}"
 
 # Get messages from a specific DM conversation
-conversation_id = dm_conversations.first['id'] # Example: get first conversation ID
+conversation_id = dm_conversations.dig('data', 'threads')&.first&.fetch('id')
 dm_messages = client.dm_list(conversation_id)
 puts "Messages: #{dm_messages}"
+
+# Send a message to a DM conversation (WORKING)
+client.dm_post(conversation_id, "Hello from Ruby!")
+
+# Get conversation members (WORKING)
+members = client.dm_members(conversation_id)
+puts "Members: #{members}"
+
+# Search DM conversations (WORKING - client-side search)
+search_results = client.dm_search("important")
+puts "Search results: #{search_results}"
 
 # Get unread messages count for a DM conversation
 unread_count = client.dm_unread(conversation_id)
 puts "Unread messages: #{unread_count}"
+
+# Note: The following methods have limitations:
+# - dm_create: Requires specific user ID format
+# - dm_mark_read: Not supported by API
+# - dm_leave: Not applicable to DMs
 
 # Group operations
 group_id = 'your_group_id'
@@ -133,9 +174,18 @@ end
 
 The client provides the following methods:
 
+#### Direct Message Methods
 - `dm` - Get list of direct message conversations
 - `dm_list(id)` - Get messages from a specific DM conversation
 - `dm_unread(id)` - Get unread message count for a DM conversation
+- `dm_post(id, message, options = {})` - Send a message to a DM conversation ✅ **Working**
+- `dm_create(user_id, message = nil)` - Create a new DM conversation (requires specific user ID format)
+- `dm_mark_read(id, message_id = nil)` - Mark DM conversation as read (not supported by API)
+- `dm_search(query, options = {})` - Search DM conversations ✅ **Working** (client-side search)
+- `dm_members(id)` - Get members of a DM conversation ✅ **Working**
+- `dm_leave(id)` - Leave a DM conversation (not supported for DMs)
+
+#### Group Methods
 - `group_list(id)` - Get messages from a specific group
 - `group_unread(id)` - Get unread message count for a group
 

@@ -149,6 +149,82 @@ module Talknote
     desc 'dm', 'Show dm list'
     def dm
       pp Talknote::Client.new.dm
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-list ID', 'Show messages from a DM conversation'
+    def dm_list(id)
+      pp Talknote::Client.new.dm_list(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-unread ID', 'Show unread count for a DM conversation'
+    def dm_unread(id)
+      pp Talknote::Client.new.dm_unread(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-post ID MESSAGE', 'Send a message to a DM conversation'
+    def dm_post(id, message)
+      result = Talknote::Client.new.dm_post(id, message)
+      puts "Message sent successfully!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-create USER_ID [MESSAGE]', 'Create a new DM conversation'
+    def dm_create(user_id, message = nil)
+      result = Talknote::Client.new.dm_create(user_id, message)
+      puts "DM conversation created successfully!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-mark-read ID [MESSAGE_ID]', 'Mark DM conversation as read'
+    def dm_mark_read(id, message_id = nil)
+      result = Talknote::Client.new.dm_mark_read(id, message_id)
+      puts "Messages marked as read!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-search QUERY', 'Search DM conversations'
+    def dm_search(query)
+      pp Talknote::Client.new.dm_search(query)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-members ID', 'Show members of a DM conversation'
+    def dm_members(id)
+      pp Talknote::Client.new.dm_members(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-leave ID', 'Leave a DM conversation'
+    def dm_leave(id)
+      puts "Note: Leaving DM conversations is typically not supported."
+      puts "DM conversations are usually persistent between participants."
+      puts "If you need to stop receiving notifications, consider muting the conversation instead."
+      exit 1
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
     end
 
     class << self
