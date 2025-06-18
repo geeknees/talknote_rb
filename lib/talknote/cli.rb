@@ -30,7 +30,29 @@ module Talknote
       )
 
       redirect_uri = "http://#{options['host']}:#{options['port']}#{path}"
-      scope = 'talknote.timeline.read talknote.timeline.write talknote.timeline.message.read talknote.timeline.message.write talknote.timeline.unread talknote.group talknote.group.read talknote.group.write talknote.group.unread talknote.group.message.read talknote.group.message.write talknote.direct_message talknote.direct_message.read talknote.direct_message.write talknote.direct_message.unread talknote.direct_message.message.read talknote.direct_message.message.write talknote.user.read talknote.user.write talknote.allfeed.read talknote.allfeed.unread'
+      scope = [
+        'talknote.timeline.read',
+        'talknote.timeline.write',
+        'talknote.timeline.message.read',
+        'talknote.timeline.message.write',
+        'talknote.timeline.unread',
+        'talknote.group',
+        'talknote.group.read',
+        'talknote.group.write',
+        'talknote.group.unread',
+        'talknote.group.message.read',
+        'talknote.group.message.write',
+        'talknote.direct_message',
+        'talknote.direct_message.read',
+        'talknote.direct_message.write',
+        'talknote.direct_message.unread',
+        'talknote.direct_message.message.read',
+        'talknote.direct_message.message.write',
+        'talknote.user.read',
+        'talknote.user.write',
+        'talknote.allfeed.read',
+        'talknote.allfeed.unread'
+      ].join(' ')
 
       code_args = {
         redirect_uri: redirect_uri,
