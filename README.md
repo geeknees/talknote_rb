@@ -240,7 +240,7 @@ The authentication token is stored in `~/.config/talknote/token.json` after runn
 
 - **API execution limit**: 500 requests per 24 hours per user
 
-Please be mindful of these limits when using the API, especially when performing bulk operations like CSV exports or automated tasks. The gem includes built-in rate limiting delays in CSV export examples to help avoid hitting these limits.
+Please be mindful of these limits when using the API, especially when performing bulk operations like CSV exports or automated tasks. The gem includes built-in rate limiting delays (0.1 second between requests) in CSV export examples to help avoid hitting these limits while maintaining reasonable performance.
 
 ## API Endpoints
 
@@ -313,14 +313,14 @@ ruby examples/complete_csv_export_example.rb
 ```
 
 **⚠️ Important Notes for CSV Export:**
-- **High-load processing warning**: Export operations are resource-intensive processes that may be terminated by server-side load limits or API rate limits
-- Large numbers of conversations may take significant time to export (potentially hours for thousands of conversations)
-- The export process includes rate limiting delays (1 second between each conversation) to avoid API throttling
+- **API rate limit warning**: Export operations are constrained by API rate limits (500 requests per 24 hours per user)
+- Large numbers of conversations may consume significant API quota and take time to export
+- The export process includes minimal rate limiting delays (0.1 second between each conversation) to maintain good performance while respecting API limits
 - **If the process stops unexpectedly**, wait some time before re-running to avoid further rate limiting
 - Each API call is logged with progress indicators to track export status
 - Export can be interrupted with Ctrl+C and resumed later
-- For large exports, consider running the specific DM or Group exporters separately instead of the complete export
-- Monitor your system resources during large exports as they may consume significant memory
+- For very large exports approaching the 500 request limit, consider running the specific DM or Group exporters separately instead of the complete export
+- Monitor your API usage to stay within the 24-hour limit of 500 requests
 
 The CSV export examples will create files with the following structure:
 

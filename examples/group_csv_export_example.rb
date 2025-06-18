@@ -20,9 +20,8 @@ end
 
 def export_groups_to_csv(filename = "group_export_#{Time.now.strftime('%Y%m%d_%H%M%S')}.csv")
   puts "=== Talknote Group CSV Export ==="
-  puts "⚠️  注意: Export処理は高負荷処理のため、大量のデータがある場合や"
-  puts "    サーバー側の負荷制限により処理が中断される可能性があります。"
-  puts "    処理が止まった場合は、時間をおいて再実行してください。"
+  puts "⚠️  注意: APIレート制限（24時間で500回まで）のため、大量のデータがある場合は"
+  puts "    制限に達する可能性があります。処理が止まった場合は、時間をおいて再実行してください。"
   puts
   puts "Exporting all group conversations to: #{filename}"
   puts
@@ -65,8 +64,8 @@ def export_groups_to_csv(filename = "group_export_#{Time.now.strftime('%Y%m%d_%H
 
         puts "Processing group #{index + 1}/#{groups.size}: #{group_name} (ID: #{group_id})"
 
-        # 注意: Export処理は高負荷がかかるため、API制限や負荷制限により処理が停止される可能性があります
-        # レート制限を回避するため、各グループ処理前に適切な待機時間を設けています
+        # 注意: APIレート制限（24時間で500回まで）のため、大量のデータがある場合は制限に達する可能性があります
+        # レート制限を回避するため、各グループ処理前に最小限の待機時間を設けています
 
         # Get unread count for this group
         unread_count = 0
@@ -116,9 +115,8 @@ def export_groups_to_csv(filename = "group_export_#{Time.now.strftime('%Y%m%d_%H
           ]
         end
 
-        # レート制限対策: サーバーへの負荷を軽減するため、各グループ処理後に待機時間を設ける
-        # 大量のグループがある場合やAPI制限が厳しい場合は、この値を調整してください
-        sleep(1)
+        # レート制限対策: APIの24時間500回制限を考慮し、各グループ処理後に最小限の待機時間を設ける
+        sleep(0.1)
       end
 
       puts
