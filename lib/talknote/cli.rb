@@ -57,8 +57,27 @@ module Talknote
       url = client.auth_code.authorize_url(code_args)
 
       puts ''
-      puts "Go to URL: #{url}"
+      puts "Authorization URL: #{url}"
       puts ''
+
+      # Automatically open the URL in the default browser
+      begin
+        if RUBY_PLATFORM =~ /darwin/  # macOS
+          system("open '#{url}'")
+          puts "Opening browser automatically..."
+        elsif RUBY_PLATFORM =~ /linux/
+          system("xdg-open '#{url}'")
+          puts "Opening browser automatically..."
+        elsif RUBY_PLATFORM =~ /win32|win64|\.NET|windows|cygwin|mingw32/i
+          system("start '#{url}'")
+          puts "Opening browser automatically..."
+        else
+          puts "Please manually open the URL above in your browser."
+        end
+      rescue => e
+        puts "Could not open browser automatically: #{e.message}"
+        puts "Please manually open the URL above in your browser."
+      end
 
       puts 'Starting server - use Ctrl+C to stop'
       puts ''
