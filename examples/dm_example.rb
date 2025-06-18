@@ -13,7 +13,8 @@ begin
 
   # Get all DM conversations
   puts "1. Getting all DM conversations..."
-  dm_conversations = client.dm
+  dm_response = client.dm
+  dm_conversations = dm_response.dig('data', 'threads') || []
   puts "Found #{dm_conversations.size} DM conversations"
   puts
 
