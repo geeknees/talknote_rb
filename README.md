@@ -240,7 +240,7 @@ The authentication token is stored in `~/.config/talknote/token.json` after runn
 
 - **API execution limit**: 500 requests per 24 hours per user
 
-Please be mindful of these limits when using the API, especially when performing bulk operations like CSV exports or automated tasks. The gem includes built-in rate limiting delays (0.1 second between requests) in CSV export examples to help avoid hitting these limits while maintaining reasonable performance.
+Please be mindful of these limits when using the API, especially when performing bulk operations like CSV exports or automated tasks. When implementing bulk operations, ensure you add appropriate rate limiting delays between requests to avoid hitting these limits.
 
 ## API Endpoints
 
@@ -315,7 +315,7 @@ ruby examples/complete_csv_export_example.rb
 **⚠️ Important Notes for CSV Export:**
 - **API rate limit warning**: Export operations are constrained by API rate limits (500 requests per 24 hours per user)
 - Large numbers of conversations may consume significant API quota and take time to export
-- The export process includes minimal rate limiting delays (0.1 second between each conversation) to maintain good performance while respecting API limits
+- **You must implement appropriate rate limiting delays** between requests to avoid hitting API limits
 - **If the process stops unexpectedly**, wait some time before re-running to avoid further rate limiting
 - Each API call is logged with progress indicators to track export status
 - Export can be interrupted with Ctrl+C and resumed later
