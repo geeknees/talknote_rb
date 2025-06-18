@@ -93,18 +93,6 @@ talknote dm-unread DM_ID
 
 # Send a message to a DM conversation
 talknote dm-post DM_ID "Your message here"
-
-# Create a new DM conversation with a user
-talknote dm-create USER_ID "Optional initial message"
-
-# Search DM conversations
-talknote dm-search "search query"
-
-# Show members of a DM conversation
-talknote dm-members DM_ID
-
-# Mark DM messages as read
-talknote dm-mark-read DM_ID [MESSAGE_ID]
 ```
 
 #### Groups
@@ -120,21 +108,6 @@ talknote group-unread GROUP_ID
 
 # Send a message to a group
 talknote group-post GROUP_ID "Your message here"
-
-# Show members of a group
-talknote group-members GROUP_ID
-
-# Join a group
-talknote group-join GROUP_ID
-
-# Leave a group
-talknote group-leave GROUP_ID
-
-# Search groups
-talknote group-search "search query"
-
-# Mark group messages as read
-talknote group-mark-read GROUP_ID [MESSAGE_ID]
 ```
 
 ## Library Usage
@@ -159,15 +132,6 @@ messages = client.dm_list('conversation_id')
 
 # Send a message
 result = client.dm_post('conversation_id', 'Hello!')
-
-# Create new DM conversation
-new_dm = client.dm_create('user_id', 'Hello there!')
-
-# Search conversations
-search_results = client.dm_search('search term')
-
-# Get conversation members
-members = client.dm_members('conversation_id')
 ```
 
 ### Groups
@@ -184,21 +148,6 @@ unread_count = client.group_unread('group_id')
 
 # Send a message to a group
 result = client.group_post('group_id', 'Hello group!')
-
-# Get group members
-members = client.group_members('group_id')
-
-# Join a group
-client.group_join('group_id')
-
-# Leave a group
-client.group_leave('group_id')
-
-# Search groups
-search_results = client.group_search('search term')
-
-# Mark messages as read
-client.group_mark_read('group_id', 'optional_message_id')
 ```
 
 ### Error Handling
@@ -224,17 +173,12 @@ This gem supports the following Talknote API endpoints:
 - `GET /api/v1/dm/list/:id` - Get messages from a conversation
 - `GET /api/v1/dm/unread/:id` - Get unread count
 - `POST /api/v1/dm/post/:id` - Send a message
-- `POST /api/v1/dm/create` - Create new conversation
 
 ### Groups
 - `GET /api/v1/group` - List groups
 - `GET /api/v1/group/list/:id` - Get messages from a group
 - `GET /api/v1/group/unread/:id` - Get unread count
 - `POST /api/v1/group/post/:id` - Send a message to group
-- `GET /api/v1/group/members/:id` - Get group members
-- `POST /api/v1/group/join/:id` - Join a group
-- `POST /api/v1/group/leave/:id` - Leave a group
-- `POST /api/v1/group/mark_read/:id` - Mark messages as read
 
 ## Permissions
 
@@ -276,9 +220,9 @@ require 'talknote_rb'
 
 client = Talknote::Client.new
 
-# Find the group by searching
-search_results = client.group_search('Daily Reports')
-group = search_results.dig('data', 'groups', 0)
+# Get all groups and find the right one
+groups = client.group
+group = groups.dig('data', 'groups')&.find { |g| g['name'].include?('Daily Reports') }
 
 if group
   # Send daily report

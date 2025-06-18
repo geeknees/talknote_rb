@@ -33,35 +33,14 @@ begin
     puts "Unread messages: #{unread_count}"
     puts
 
-    puts "4. Getting members of conversation #{conversation_id}..."
-    members = client.dm_members(conversation_id)
-    puts "Members: #{members}"
-    puts
-
     # Example of sending a message (commented out to avoid spam)
-    # puts "5. Sending a test message..."
+    # puts "4. Sending a test message..."
     # result = client.dm_post(conversation_id, "Hello from Ruby client!")
     # puts "Message sent: #{result}"
     # puts
-
-    # Example of marking as read (commented out to avoid unintended side effects)
-    # puts "6. Marking conversation as read..."
-    # client.dm_mark_read(conversation_id)
-    # puts "Conversation marked as read"
-    # puts
-
-    puts "7. Searching DM conversations..."
-    search_results = client.dm_search("test")
-    puts "Search results: #{search_results.size} conversations found"
-    puts
   else
     puts "No DM conversations found"
   end
-
-  # Example of creating a new DM (commented out to avoid creating unwanted conversations)
-  # puts "8. Creating a new DM conversation..."
-  # new_dm = client.dm_create("user_id_here", "Hello from Ruby!")
-  # puts "New DM created: #{new_dm}"
 
 rescue Talknote::Error => e
   puts "Talknote API Error: #{e.message}"

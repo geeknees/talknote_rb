@@ -180,52 +180,7 @@ module Talknote
       exit 1
     end
 
-    desc 'dm-create USER_ID [MESSAGE]', 'Create a new DM conversation'
-    def dm_create(user_id, message = nil)
-      result = Talknote::Client.new.dm_create(user_id, message)
-      puts "DM conversation created successfully!"
-      pp result
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
 
-    desc 'dm-mark-read ID [MESSAGE_ID]', 'Mark DM conversation as read'
-    def dm_mark_read(id, message_id = nil)
-      result = Talknote::Client.new.dm_mark_read(id, message_id)
-      puts "Messages marked as read!"
-      pp result
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'dm-search QUERY', 'Search DM conversations'
-    def dm_search(query)
-      pp Talknote::Client.new.dm_search(query)
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'dm-members ID', 'Show members of a DM conversation'
-    def dm_members(id)
-      pp Talknote::Client.new.dm_members(id)
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'dm-leave ID', 'Leave a DM conversation'
-    def dm_leave(id)
-      puts "Note: Leaving DM conversations is typically not supported."
-      puts "DM conversations are usually persistent between participants."
-      puts "If you need to stop receiving notifications, consider muting the conversation instead."
-      exit 1
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
 
     desc 'group', 'Show group list'
     def group
@@ -261,51 +216,7 @@ module Talknote
       exit 1
     end
 
-    desc 'group-members ID', 'Show members of a group'
-    def group_members(id)
-      pp Talknote::Client.new.group_members(id)
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
 
-    desc 'group-join ID', 'Join a group'
-    def group_join(id)
-      result = Talknote::Client.new.group_join(id)
-      puts "Successfully joined the group!"
-      pp result
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'group-leave ID', 'Leave a group'
-    def group_leave(id)
-      result = Talknote::Client.new.group_leave(id)
-      puts "Successfully left the group!"
-      pp result
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'group-search QUERY', 'Search groups'
-    def group_search(query)
-      pp Talknote::Client.new.group_search(query)
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
-
-    desc 'group-mark-read ID [MESSAGE_ID]', 'Mark group messages as read'
-    def group_mark_read(id, message_id = nil)
-      result = Talknote::Client.new.group_mark_read(id, message_id)
-      puts "Messages marked as read!"
-      pp result
-    rescue Talknote::Error => e
-      puts "Error: #{e.message}"
-      exit 1
-    end
 
     class << self
       def exit_on_failure?

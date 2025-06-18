@@ -38,25 +38,7 @@ def main
     puts "   ❌ Error: #{e.message}"
   end
 
-  # Example 2: Search for groups
-  puts "\n🔍 Searching for groups containing 'dev'..."
-  begin
-    search_results = client.group_search('dev')
-    matching_groups = search_results.dig('data', 'groups') || []
-
-    if matching_groups.empty?
-      puts "   No matching groups found"
-    else
-      puts "   Found #{matching_groups.length} matching groups:"
-      matching_groups.each do |group|
-        puts "   - #{group['name']} (ID: #{group['id']})"
-      end
-    end
-  rescue Talknote::Error => e
-    puts "   ❌ Error: #{e.message}"
-  end
-
-  # Example 3: Get group details and unread count
+  # Example 2: Get group details and unread count
   puts "\n📊 Checking unread messages in groups..."
   begin
     groups_response = client.group
@@ -74,14 +56,12 @@ def main
         puts "     ❌ Could not get unread count: #{e.message}"
       end
 
-      # Get members (if available)
+      # Get messages from the group
       begin
-        members_response = client.group_members(group['id'])
-        if members_response.is_a?(Hash)
-          puts "     👥 Members available: ✅"
-        end
+        messages_response = client.group_list(group['id'])
+        puts "     � Messages: Available"
       rescue Talknote::Error => e
-        puts "     👥 Members info: Not available (#{e.message})"
+        puts "     � Messages: Could not retrieve (#{e.message})"
       end
 
       puts ""
@@ -90,7 +70,7 @@ def main
     puts "   ❌ Error: #{e.message}"
   end
 
-  # Example 4: Send a test message (commented out for safety)
+  # Example 3: Send a test message (commented out for safety)
   puts "\n💬 Example: Sending a message to a group"
   puts "   (This example is commented out for safety)"
   puts "   To send a message, uncomment the code below and specify a group ID:"
@@ -115,7 +95,6 @@ def main
   puts "\nNext steps:"
   puts "- Try running: bundle exec talknote group"
   puts "- Send a message: bundle exec talknote group-post GROUP_ID 'Your message'"
-  puts "- Search groups: bundle exec talknote group-search 'search term'"
 
 rescue StandardError => e
   puts "\n💥 Unexpected error: #{e.message}"
