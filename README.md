@@ -71,181 +71,268 @@ bundle exec talknote init -i your_client_id -s your_client_secret -h localhost -
 
 ### CLI Commands
 
-#### Direct Message Commands
-
+#### Authentication
 ```sh
-# View all DM conversations
-bundle exec talknote dm
+# Initialize authentication (run this first)
+talknote init -i CLIENT_ID -s CLIENT_SECRET
 
-# View messages from a specific DM conversation
-bundle exec talknote dm-list CONVERSATION_ID
-
-# Check unread count for a DM conversation
-bundle exec talknote dm-unread CONVERSATION_ID
-
-# Send a message to a DM conversation
-bundle exec talknote dm-post CONVERSATION_ID "Your message here"
-
-# Create a new DM conversation (optionally with an initial message)
-bundle exec talknote dm-create USER_ID
-bundle exec talknote dm-create USER_ID "Initial message"
-
-# Mark DM conversation as read
-bundle exec talknote dm-mark-read CONVERSATION_ID
-bundle exec talknote dm-mark-read CONVERSATION_ID MESSAGE_ID
-
-# Search DM conversations
-bundle exec talknote dm-search "search query"
-
-# View members of a DM conversation
-bundle exec talknote dm-members CONVERSATION_ID
-
-# Leave a DM conversation
-bundle exec talknote dm-leave CONVERSATION_ID
+# Optional: specify custom callback host/port
+talknote init -i CLIENT_ID -s CLIENT_SECRET -h localhost -p 9000
 ```
 
-### Ruby Client Usage
+#### Direct Messages
+```sh
+# List all DM conversations
+talknote dm
 
-You can also use the client directly in your Ruby code:
+# Show messages from a specific DM conversation
+talknote dm-list DM_ID
+
+# Show unread count for a DM conversation
+talknote dm-unread DM_ID
+
+# Send a message to a DM conversation
+talknote dm-post DM_ID "Your message here"
+
+# Create a new DM conversation with a user
+talknote dm-create USER_ID "Optional initial message"
+
+# Search DM conversations
+talknote dm-search "search query"
+
+# Show members of a DM conversation
+talknote dm-members DM_ID
+
+# Mark DM messages as read
+talknote dm-mark-read DM_ID [MESSAGE_ID]
+```
+
+#### Groups
+```sh
+# List all groups
+talknote group
+
+# Show messages from a specific group
+talknote group-list GROUP_ID
+
+# Show unread count for a group
+talknote group-unread GROUP_ID
+
+# Send a message to a group
+talknote group-post GROUP_ID "Your message here"
+
+# Show members of a group
+talknote group-members GROUP_ID
+
+# Join a group
+talknote group-join GROUP_ID
+
+# Leave a group
+talknote group-leave GROUP_ID
+
+# Search groups
+talknote group-search "search query"
+
+# Mark group messages as read
+talknote group-mark-read GROUP_ID [MESSAGE_ID]
+```
+
+## Library Usage
+
+### Setup
 
 ```ruby
 require 'talknote_rb'
 
-# Initialize client (requires authentication token to be set up)
+# Client will automatically load token from ~/.config/talknote/token.json
 client = Talknote::Client.new
+```
 
-# Get direct message conversations
-dm_conversations = client.dm
-puts "DM Conversations: #{dm_conversations}"
+### Direct Messages
 
-# Get messages from a specific DM conversation
-conversation_id = dm_conversations.dig('data', 'threads')&.first&.fetch('id')
-dm_messages = client.dm_list(conversation_id)
-puts "Messages: #{dm_messages}"
+```ruby
+# Get all DM conversations
+conversations = client.dm
 
-# Send a message to a DM conversation (WORKING)
-client.dm_post(conversation_id, "Hello from Ruby!")
+# Get messages from a specific conversation
+messages = client.dm_list('conversation_id')
 
-# Get conversation members (WORKING)
-members = client.dm_members(conversation_id)
-puts "Members: #{members}"
+# Send a message
+result = client.dm_post('conversation_id', 'Hello!')
 
-# Search DM conversations (WORKING - client-side search)
-search_results = client.dm_search("important")
-puts "Search results: #{search_results}"
+# Create new DM conversation
+new_dm = client.dm_create('user_id', 'Hello there!')
 
-# Get unread messages count for a DM conversation
-unread_count = client.dm_unread(conversation_id)
-puts "Unread messages: #{unread_count}"
+# Search conversations
+search_results = client.dm_search('search term')
 
-# Note: The following methods have limitations:
-# - dm_create: Requires specific user ID format
-# - dm_mark_read: Not supported by API
-# - dm_leave: Not applicable to DMs
+# Get conversation members
+members = client.dm_members('conversation_id')
+```
 
-# Group operations
-group_id = 'your_group_id'
-group_messages = client.group_list(group_id)
-puts "Group messages: #{group_messages}"
+### Groups
 
-group_unread = client.group_unread(group_id)
-puts "Group unread count: #{group_unread}"
+```ruby
+# Get all groups
+groups = client.group
+
+# Get messages from a specific group
+messages = client.group_list('group_id')
+
+# Get unread count
+unread_count = client.group_unread('group_id')
+
+# Send a message to a group
+result = client.group_post('group_id', 'Hello group!')
+
+# Get group members
+members = client.group_members('group_id')
+
+# Join a group
+client.group_join('group_id')
+
+# Leave a group
+client.group_leave('group_id')
+
+# Search groups
+search_results = client.group_search('search term')
+
+# Mark messages as read
+client.group_mark_read('group_id', 'optional_message_id')
 ```
 
 ### Error Handling
 
 ```ruby
-require 'talknote_rb'
-
 begin
-  client = Talknote::Client.new
-  dm_conversations = client.dm
-  puts dm_conversations
-rescue JSON::ParserError => e
-  puts "Error parsing API response: #{e.message}"
-rescue Errno::ENOENT => e
-  puts "Authentication token not found. Please run 'talknote init' first."
-rescue => e
-  puts "An error occurred: #{e.message}"
+  result = client.dm
+rescue Talknote::Error => e
+  puts "API Error: #{e.message}"
 end
 ```
 
-### Available API Methods
+## Configuration
 
-The client provides the following methods:
+The authentication token is stored in `~/.config/talknote/token.json` after running the `init` command. The file contains the OAuth 2.0 access token and refresh token.
 
-#### Direct Message Methods
-- `dm` - Get list of direct message conversations
-- `dm_list(id)` - Get messages from a specific DM conversation
-- `dm_unread(id)` - Get unread message count for a DM conversation
-- `dm_post(id, message, options = {})` - Send a message to a DM conversation ✅ **Working**
-- `dm_create(user_id, message = nil)` - Create a new DM conversation (requires specific user ID format)
-- `dm_mark_read(id, message_id = nil)` - Mark DM conversation as read (not supported by API)
-- `dm_search(query, options = {})` - Search DM conversations ✅ **Working** (client-side search)
-- `dm_members(id)` - Get members of a DM conversation ✅ **Working**
-- `dm_leave(id)` - Leave a DM conversation (not supported for DMs)
+## API Endpoints
 
-#### Group Methods
-- `group_list(id)` - Get messages from a specific group
-- `group_unread(id)` - Get unread message count for a group
+This gem supports the following Talknote API endpoints:
 
-### OAuth Scopes
+### Direct Messages
+- `GET /api/v1/dm` - List DM conversations
+- `GET /api/v1/dm/list/:id` - Get messages from a conversation
+- `GET /api/v1/dm/unread/:id` - Get unread count
+- `POST /api/v1/dm/post/:id` - Send a message
+- `POST /api/v1/dm/create` - Create new conversation
 
-The gem requests the following OAuth scopes by default:
+### Groups
+- `GET /api/v1/group` - List groups
+- `GET /api/v1/group/list/:id` - Get messages from a group
+- `GET /api/v1/group/unread/:id` - Get unread count
+- `POST /api/v1/group/post/:id` - Send a message to group
+- `GET /api/v1/group/members/:id` - Get group members
+- `POST /api/v1/group/join/:id` - Join a group
+- `POST /api/v1/group/leave/:id` - Leave a group
+- `POST /api/v1/group/mark_read/:id` - Mark messages as read
 
-- `talknote.timeline.read` / `talknote.timeline.write`
-- `talknote.timeline.message.read` / `talknote.timeline.message.write`
-- `talknote.timeline.unread`
-- `talknote.group` / `talknote.group.read` / `talknote.group.write`
-- `talknote.group.unread`
-- `talknote.group.message.read` / `talknote.group.message.write`
-- `talknote.direct_message` / `talknote.direct_message.read` / `talknote.direct_message.write`
+## Permissions
+
+Make sure your Talknote application has the necessary scopes:
+
+### DM Permissions
+- `talknote.direct_message`
+- `talknote.direct_message.read`
+- `talknote.direct_message.write`
 - `talknote.direct_message.unread`
-- `talknote.direct_message.message.read` / `talknote.direct_message.message.write`
-- `talknote.user.read` / `talknote.user.write`
-- `talknote.allfeed.read` / `talknote.allfeed.unread`
+- `talknote.direct_message.message.read`
+- `talknote.direct_message.message.write`
 
-### Configuration
+### Group Permissions
+- `talknote.group`
+- `talknote.group.read`
+- `talknote.group.write`
+- `talknote.group.unread`
+- `talknote.group.message.read`
+- `talknote.group.message.write`
 
-The access token is automatically saved to `~/.config/talknote/token.json` after successful authentication. Make sure this file is kept secure and not committed to version control.
+### Additional Permissions
+- `talknote.user.read`
+- `talknote.user.write`
+- `talknote.timeline.read`
+- `talknote.timeline.write`
+- `talknote.timeline.message.read`
+- `talknote.timeline.message.write`
+- `talknote.timeline.unread`
+- `talknote.allfeed.read`
+- `talknote.allfeed.unread`
 
-For more information about the Talknote API, visit the [official documentation](https://developer.talknote.com/doc/#top).
+## Examples
 
-## Troubleshooting
+### Example: Send a daily report to a group
 
-### Authentication Issues
+```ruby
+require 'talknote_rb'
 
-If you encounter authentication problems:
+client = Talknote::Client.new
 
-1. **Invalid client credentials**: Verify your client ID and secret from the Talknote Developer Console
-2. **Token expired**: Re-run the `init` command to refresh your access token
-3. **Callback URL issues**: Make sure your OAuth callback URL in the Developer Console matches the host and port you're using (default: `http://127.0.0.1:3000/oauth/callback`)
+# Find the group by searching
+search_results = client.group_search('Daily Reports')
+group = search_results.dig('data', 'groups', 0)
 
-### Common Errors
+if group
+  # Send daily report
+  report = "📊 Daily Report (#{Date.today})\n\n" \
+           "- Tasks completed: 15\n" \
+           "- Issues resolved: 3\n" \
+           "- New features deployed: 2"
 
-- **File not found error**: Make sure you've run `talknote init` first to set up authentication
-- **Network errors**: Check your internet connection and Talknote service status
-- **Permission errors**: Ensure your access token has the required scopes for the operations you're trying to perform
-
-### Configuration File Location
-
-The authentication token is stored at:
+  client.group_post(group['id'], report)
+  puts "Daily report sent to #{group['name']}!"
+else
+  puts "Daily Reports group not found"
+end
 ```
-~/.config/talknote/token.json
-```
 
-If you need to reset your authentication, simply delete this file and run `talknote init` again.
+### Example: Monitor unread messages
+
+```ruby
+require 'talknote_rb'
+
+client = Talknote::Client.new
+
+# Check unread DMs
+dm_conversations = client.dm
+dm_conversations.dig('data', 'threads')&.each do |dm|
+  unread = client.dm_unread(dm['id'])
+  unread_count = unread.dig('data', 'unread_count')
+
+  if unread_count && unread_count > 0
+    puts "📩 #{dm['title']}: #{unread_count} unread messages"
+  end
+end
+
+# Check unread group messages
+groups = client.group
+groups.dig('data', 'groups')&.each do |group|
+  unread = client.group_unread(group['id'])
+  unread_count = unread.dig('data', 'unread_count')
+
+  if unread_count && unread_count > 0
+    puts "👥 #{group['name']}: #{unread_count} unread messages"
+  end
+end
+```
 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/geeknees/talknote_rb. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/talknote_rb/blob/master/CODE_OF_CONDUCT.md).
-
+Bug reports and pull requests are welcome on GitHub at https://github.com/geeknees/talknote_rb. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/geeknees/talknote_rb/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -253,4 +340,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the TalknoteRb project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/talknote_rb/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the TalknoteRb project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/geeknees/talknote_rb/blob/main/CODE_OF_CONDUCT.md).

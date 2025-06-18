@@ -227,6 +227,86 @@ module Talknote
       exit 1
     end
 
+    desc 'group', 'Show group list'
+    def group
+      pp Talknote::Client.new.group
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-list ID', 'Show messages from a group'
+    def group_list(id)
+      pp Talknote::Client.new.group_list(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-unread ID', 'Show unread count for a group'
+    def group_unread(id)
+      pp Talknote::Client.new.group_unread(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-post ID MESSAGE', 'Send a message to a group'
+    def group_post(id, message)
+      result = Talknote::Client.new.group_post(id, message)
+      puts "Message sent successfully!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-members ID', 'Show members of a group'
+    def group_members(id)
+      pp Talknote::Client.new.group_members(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-join ID', 'Join a group'
+    def group_join(id)
+      result = Talknote::Client.new.group_join(id)
+      puts "Successfully joined the group!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-leave ID', 'Leave a group'
+    def group_leave(id)
+      result = Talknote::Client.new.group_leave(id)
+      puts "Successfully left the group!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-search QUERY', 'Search groups'
+    def group_search(query)
+      pp Talknote::Client.new.group_search(query)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-mark-read ID [MESSAGE_ID]', 'Mark group messages as read'
+    def group_mark_read(id, message_id = nil)
+      result = Talknote::Client.new.group_mark_read(id, message_id)
+      puts "Messages marked as read!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
     class << self
       def exit_on_failure?
         true

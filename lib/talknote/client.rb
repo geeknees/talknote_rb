@@ -107,6 +107,11 @@ module Talknote
       raise Talknote::Error, "Leaving DM conversations is not supported by the Talknote API"
     end
 
+    # Group-related methods
+    def group
+      handle_response(conn.get('api/v1/group'))
+    end
+
     def group_list(id)
       handle_response(conn.get("api/v1/group/list/#{id}"))
     end
@@ -115,7 +120,73 @@ module Talknote
       handle_response(conn.get("api/v1/group/unread/#{id}"))
     end
 
-    # def group_post; end
+    def group_post(id, message, options = {})
+      data = { message: message }
+      data.merge!(options) if options.any?
+
+      response = conn.post("api/v1/group/post/#{id}") do |req|
+        req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        req.body = URI.encode_www_form(data)
+      end
+      handle_response(response)
+    end
+
+    def group_members(id)
+      handle_response(conn.get("api/v1/group/members/#{id}"))
+    end
+
+    def group_join(id)
+      response = conn.post("api/v1/group/join/#{id}") do |req|
+        req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        req.body = ''
+      end
+      handle_response(response)
+    end
+
+    def group_leave(id)
+      response = conn.post("api/v1/group/leave/#{id}") do |req|
+        req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        req.body = ''
+      end
+      handle_response(response)
+    end
+
+    def group_search(query, options = {})
+      # Client-side search implementation
+      group_data = handle_response(conn.get('api/v1/group'))
+      groups = group_data.dig('data', 'groups') || []
+
+      # Search through group names and descriptions
+      matching_groups = groups.select do |group|
+        name_match = group['name']&.downcase&.include?(query.downcase)
+        description_match = group['description']&.downcase&.include?(query.downcase)
+        name_match || description_match
+      end
+
+      # Apply limit if specified in options
+      limit = options[:limit] || options['limit']
+      matching_groups = matching_groups.first(limit) if limit
+
+      {
+        'status' => 1,
+        'query' => query,
+        'total_results' => matching_groups.length,
+        'data' => {
+          'groups' => matching_groups
+        }
+      }
+    end
+
+    def group_mark_read(id, message_id = nil)
+      data = {}
+      data[:message_id] = message_id if message_id
+
+      response = conn.post("api/v1/group/mark_read/#{id}") do |req|
+        req.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        req.body = URI.encode_www_form(data)
+      end
+      handle_response(response)
+    end
 
     private
 

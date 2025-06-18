@@ -125,4 +125,143 @@ RSpec.describe Talknote::Client do
       expect { client.dm }.to raise_error(Talknote::Error, 'Not Found: Resource does not exist')
     end
   end
+
+  describe '#group' do
+    it 'fetches the group list' do
+      expect(mock_conn).to receive(:get).with('api/v1/group').and_return(mock_response)
+
+      result = client.group
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_list' do
+    it 'fetches messages from a specific group' do
+      expect(mock_conn).to receive(:get).with('api/v1/group/list/123').and_return(mock_response)
+
+      result = client.group_list('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_unread' do
+    it 'fetches unread count for a specific group' do
+      expect(mock_conn).to receive(:get).with('api/v1/group/unread/123').and_return(mock_response)
+
+      result = client.group_unread('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_post' do
+    it 'sends a POST request to post a message to a group' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/post/123').and_return(mock_response)
+
+      result = client.group_post('123', 'Hello Group!')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+
+    it 'includes options in the request body' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/post/123') do |&block|
+        req = double('request')
+        expect(req).to receive(:headers=).with('Content-Type' => 'application/x-www-form-urlencoded')
+        expect(req).to receive(:body=).with('message=Hello+Group%21&priority=high')
+        block.call(req)
+        mock_response
+      end
+
+      client.group_post('123', 'Hello Group!', { priority: 'high' })
+    end
+  end
+
+  describe '#group_members' do
+    it 'fetches members of a specific group' do
+      expect(mock_conn).to receive(:get).with('api/v1/group/members/123').and_return(mock_response)
+
+      result = client.group_members('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_join' do
+    it 'sends a POST request to join a group' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/join/123').and_return(mock_response)
+
+      result = client.group_join('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_leave' do
+    it 'sends a POST request to leave a group' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/leave/123').and_return(mock_response)
+
+      result = client.group_leave('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+  end
+
+  describe '#group_search' do
+    let(:group_data) do
+      {
+        'data' => {
+          'groups' => [
+            { 'id' => '1', 'name' => 'Development Team', 'description' => 'For developers' },
+            { 'id' => '2', 'name' => 'Marketing Team', 'description' => 'For marketing campaigns' },
+            { 'id' => '3', 'name' => 'Sales Team', 'description' => 'For sales activities' }
+          ]
+        }
+      }
+    end
+
+    it 'searches groups by name' do
+      expect(mock_conn).to receive(:get).with('api/v1/group').and_return(
+        instance_double(Faraday::Response, status: 200, body: group_data.to_json)
+      )
+
+      result = client.group_search('Development')
+      expect(result['data']['groups'].length).to eq(1)
+      expect(result['data']['groups'][0]['name']).to eq('Development Team')
+    end
+
+    it 'searches groups by description' do
+      expect(mock_conn).to receive(:get).with('api/v1/group').and_return(
+        instance_double(Faraday::Response, status: 200, body: group_data.to_json)
+      )
+
+      result = client.group_search('marketing')
+      expect(result['data']['groups'].length).to eq(1)
+      expect(result['data']['groups'][0]['name']).to eq('Marketing Team')
+    end
+
+    it 'applies limit when specified' do
+      expect(mock_conn).to receive(:get).with('api/v1/group').and_return(
+        instance_double(Faraday::Response, status: 200, body: group_data.to_json)
+      )
+
+      result = client.group_search('Team', limit: 2)
+      expect(result['data']['groups'].length).to eq(2)
+    end
+  end
+
+  describe '#group_mark_read' do
+    it 'marks group messages as read' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/mark_read/123').and_return(mock_response)
+
+      result = client.group_mark_read('123')
+      expect(result).to eq({ 'result' => 'success' })
+    end
+
+    it 'includes message_id when provided' do
+      expect(mock_conn).to receive(:post).with('api/v1/group/mark_read/123') do |&block|
+        req = double('request')
+        expect(req).to receive(:headers=).with('Content-Type' => 'application/x-www-form-urlencoded')
+        expect(req).to receive(:body=).with('message_id=456')
+        block.call(req)
+        mock_response
+      end
+
+      client.group_mark_read('123', '456')
+    end
+  end
 end
