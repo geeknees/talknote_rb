@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'base64'
+require 'json'
 require 'oauth2'
 require 'faraday'
 

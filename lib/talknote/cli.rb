@@ -2,6 +2,11 @@
 
 require 'talknote'
 require 'thor'
+require 'webrick'
+require 'pp'
+require 'oauth2'
+require 'fileutils'
+require 'json'
 
 module Talknote
   class CLI < Thor
@@ -11,7 +16,7 @@ module Talknote
     option 'id', aliases: 'i', type: :string, required: true, banner: 'Client ID'
     option 'secret', aliases: 's', type: :string, required: true, banner: 'Client Secret'
     option 'host', aliases: 'h', type: :string, default: '127.0.0.1', banner: 'Callback host'
-    option 'port', aliases: 'p', type: :string, default: '3000', banner: 'Callback port'
+    option 'port', aliases: 'p', type: :string, default: '8080', banner: 'Callback port'
     def init
       state = ('a'..'z').to_a.sample(32).join
       path = '/oauth/callback'
@@ -25,26 +30,29 @@ module Talknote
       )
 
       redirect_uri = "http://#{options['host']}:#{options['port']}#{path}"
-      scope = %w[talknote.timeline.read
-                 talknote.timeline.write
-                 talknote.timeline.message.read
-                 talknote.timeline.message.write
-                 talknote.timeline.unread
-                 talknote.group
-                 talknote.group.read
-                 talknote.group.write
-                 talknote.group.unread
-                 talknote.group.message.read
-                 talknote.group.message.write
-                 talknote.direct_message
-                 talknote.direct_message.read
-                 talknote.direct_message.write
-                 talknote.direct_message.unread
-                 talknote.direct_message.message.read
-                 talknote.direct_message.message.write
-                 talknote.user.read talknote.user.write
-                 talknote.allfeed.read
-                 talknote.allfeed.unread].join(' ')
+      scope = [
+        'talknote.timeline.read',
+        'talknote.timeline.write',
+        'talknote.timeline.message.read',
+        'talknote.timeline.message.write',
+        'talknote.timeline.unread',
+        'talknote.group',
+        'talknote.group.read',
+        'talknote.group.write',
+        'talknote.group.unread',
+        'talknote.group.message.read',
+        'talknote.group.message.write',
+        'talknote.direct_message',
+        'talknote.direct_message.read',
+        'talknote.direct_message.write',
+        'talknote.direct_message.unread',
+        'talknote.direct_message.message.read',
+        'talknote.direct_message.message.write',
+        'talknote.user.read',
+        'talknote.user.write',
+        'talknote.allfeed.read',
+        'talknote.allfeed.unread'
+      ].join(' ')
 
       code_args = {
         redirect_uri: redirect_uri,
@@ -55,8 +63,27 @@ module Talknote
       url = client.auth_code.authorize_url(code_args)
 
       puts ''
-      puts "Go to URL: #{url}"
+      puts "Authorization URL: #{url}"
       puts ''
+
+      # Automatically open the URL in the default browser
+      begin
+        if RUBY_PLATFORM =~ /darwin/  # macOS
+          system("open '#{url}'")
+          puts "Opening browser automatically..."
+        elsif RUBY_PLATFORM =~ /linux/
+          system("xdg-open '#{url}'")
+          puts "Opening browser automatically..."
+        elsif RUBY_PLATFORM =~ /win32|win64|\.NET|windows|cygwin|mingw32/i
+          system("start '#{url}'")
+          puts "Opening browser automatically..."
+        else
+          puts "Please manually open the URL above in your browser."
+        end
+      rescue => e
+        puts "Could not open browser automatically: #{e.message}"
+        puts "Please manually open the URL above in your browser."
+      end
 
       puts 'Starting server - use Ctrl+C to stop'
       puts ''
@@ -80,25 +107,36 @@ module Talknote
           next
         end
 
-        token = client.auth_code.get_token(
-          req.query['code'],
-          grant_type: 'authorization_code',
-          redirect_uri: redirect_uri
-        )
+        begin
+          token = client.auth_code.get_token(
+            req.query['code'],
+            grant_type: 'authorization_code',
+            redirect_uri: redirect_uri
+          )
 
-        pp token.to_hash
-        puts ''
+          pp token.to_hash
+          puts ''
 
-        config_path = "#{Dir.home}/.config/talknote"
-        unless Dir.exists?(config_path)
-          Dir.mkdir(config_path)
+          config_path = "#{Dir.home}/.config/talknote"
+          FileUtils.mkdir_p(config_path) unless Dir.exist?(config_path)
+
+          File.write("#{config_path}/token.json", token.to_hash.to_json)
+          res.status = 200
+          res.body = 'You may now close this tab'
+
+          server.shutdown
+        rescue OAuth2::Error => e
+          puts "OAuth2 Error: #{e.message}"
+          puts "Error Code: #{e.code}" if e.respond_to?(:code)
+          puts "Error Description: #{e.description}" if e.respond_to?(:description)
+          res.status = 400
+          res.body = "OAuth Error: #{e.message}"
+        rescue => e
+          puts "General Error: #{e.message}"
+          puts e.backtrace.join("\n")
+          res.status = 500
+          res.body = "Server Error: #{e.message}"
         end
-
-        File.write("#{config_path}/token.json", token.to_hash.to_json)
-        res.status = 200
-        res.body = 'You may now close this tab'
-
-        server.shutdown
       end
 
       trap('INT') do
@@ -111,7 +149,74 @@ module Talknote
     desc 'dm', 'Show dm list'
     def dm
       pp Talknote::Client.new.dm
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
     end
+
+    desc 'dm-list ID', 'Show messages from a DM conversation'
+    def dm_list(id)
+      pp Talknote::Client.new.dm_list(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-unread ID', 'Show unread count for a DM conversation'
+    def dm_unread(id)
+      pp Talknote::Client.new.dm_unread(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'dm-post ID MESSAGE', 'Send a message to a DM conversation'
+    def dm_post(id, message)
+      result = Talknote::Client.new.dm_post(id, message)
+      puts "Message sent successfully!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+
+
+    desc 'group', 'Show group list'
+    def group
+      pp Talknote::Client.new.group
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-list ID', 'Show messages from a group'
+    def group_list(id)
+      pp Talknote::Client.new.group_list(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-unread ID', 'Show unread count for a group'
+    def group_unread(id)
+      pp Talknote::Client.new.group_unread(id)
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+    desc 'group-post ID MESSAGE', 'Send a message to a group'
+    def group_post(id, message)
+      result = Talknote::Client.new.group_post(id, message)
+      puts "Message sent successfully!"
+      pp result
+    rescue Talknote::Error => e
+      puts "Error: #{e.message}"
+      exit 1
+    end
+
+
 
     class << self
       def exit_on_failure?

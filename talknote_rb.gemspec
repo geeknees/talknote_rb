@@ -21,11 +21,16 @@ Gem::Specification.new do |spec|
   spec.files         = Dir.chdir(File.expand_path('..', __FILE__)) do
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   end
-  spec.bindir        = "exe"
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
+  spec.bindir        = "bin"
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  spec.add_dependency 'oauth2'
+  spec.add_dependency 'base64'
+  spec.add_dependency 'bigdecimal'
+  spec.add_dependency 'csv', '~> 3.0'
+  spec.add_dependency 'json'
+  spec.add_dependency 'oauth2', '~> 2.0'
   spec.add_dependency 'thor'
-  spec.add_dependency 'faraday'
+  spec.add_dependency 'faraday', '~> 2.0'
+  spec.add_dependency 'webrick'
 end
