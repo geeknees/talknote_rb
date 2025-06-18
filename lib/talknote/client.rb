@@ -30,8 +30,6 @@ module Talknote
       handle_response(response)
     end
 
-
-
     # Group-related methods
     def group
       handle_response(conn.get('api/v1/group'))
