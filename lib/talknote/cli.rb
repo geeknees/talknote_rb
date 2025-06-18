@@ -2,6 +2,8 @@
 
 require 'talknote'
 require 'thor'
+require 'webrick'
+require 'pp'
 
 module Talknote
   class CLI < Thor
