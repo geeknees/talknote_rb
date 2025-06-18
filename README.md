@@ -39,12 +39,6 @@ Or install it yourself as:
 gem 'csv', '~> 3.0'
 ```
 
-    $ bundle install
-
-Or install it yourself as:
-
-    $ gem install talknote_rb
-
 ## Quick Start
 
 1. Get your client credentials from the [Talknote Developer Console](https://developer.talknote.com/doc/#intro)
@@ -163,61 +157,41 @@ result = client.group_post('group_id', 'Hello group!')
 
 ### CSV Export Examples
 
-**⚠️ Note**: CSV export operations are high-load processes. For large datasets, they may take considerable time and could be interrupted by API rate limits or server load restrictions.
+**⚠️ Important Notes for CSV Export:**
+- **API rate limit warning**: Export operations are constrained by API rate limits (500 requests per 24 hours per user)
+- Large numbers of conversations may consume significant API quota and take time to export
+- **You must implement appropriate rate limiting delays** between requests to avoid hitting API limits
+- **If the process stops unexpectedly**, wait some time before re-running to avoid further rate limiting
+- Each API call is logged with progress indicators to track export status
+- Export can be interrupted with Ctrl+C and resumed later
+- For very large exports approaching the 500 request limit, consider running the specific DM or Group exporters separately instead of the complete export
+- Monitor your API usage to stay within the 24-hour limit of 500 requests
 
-```ruby
-require 'talknote_rb'
-require 'csv'
+The CSV export examples will create files with the following structure:
 
-client = Talknote::Client.new
+**DM CSV format:**
+- `conversation_id`, `conversation_name`, `message_id`, `user_id`, `user_name`, `message`, `created_at`, `message_type`
 
-# Export DM conversations to CSV
-CSV.open('dm_export.csv', 'w', encoding: 'UTF-8') do |csv|
-  csv << ['conversation_id', 'conversation_name', 'message_id', 'sender_name', 'message', 'created_at']
+**Group CSV format:**
+- `group_id`, `group_name`, `message_id`, `user_id`, `user_name`, `message`, `created_at`, `message_type`, `unread_count`
 
-  dm_response = client.dm
-  conversations = dm_response.dig('data', 'threads') || []
+The `examples/` directory contains practical usage examples:
 
-  conversations.each do |conversation|
-    messages_response = client.dm_list(conversation['id'])
-    messages = messages_response.dig('data', 'messages') || []
+- `examples/dm_example.rb` - Basic DM operations
+- `examples/group_example.rb` - Basic group operations
+- `examples/dm_csv_export_example.rb` - Export all DM conversations to CSV
+- `examples/group_csv_export_example.rb` - Export all group conversations to CSV
+- `examples/complete_csv_export_example.rb` - Export everything to organized CSV files
 
-    messages.each do |message|
-      csv << [
-        conversation['id'],
-        conversation['name'],
-        message['id'],
-        message['sender_name'],
-        message['message'],
-        message['created_at']
-      ]
-    end
-  end
-end
+```bash
+# Export all DM conversations to CSV
+ruby examples/dm_csv_export_example.rb
 
-# Export group conversations to CSV
-CSV.open('group_export.csv', 'w', encoding: 'UTF-8') do |csv|
-  csv << ['group_id', 'group_name', 'message_id', 'sender_name', 'message', 'created_at']
+# Export all group conversations to CSV
+ruby examples/group_csv_export_example.rb
 
-  groups_response = client.group
-  groups = groups_response.dig('data', 'groups') || []
-
-  groups.each do |group|
-    messages_response = client.group_list(group['id'])
-    messages = messages_response.dig('data', 'messages') || []
-
-    messages.each do |message|
-      csv << [
-        group['id'],
-        group['name'],
-        message['id'],
-        message['sender_name'],
-        message['message'],
-        message['created_at']
-      ]
-    end
-  end
-end
+# Export everything to organized directory
+ruby examples/complete_csv_export_example.rb
 ```
 
 ### Error Handling
@@ -290,45 +264,6 @@ Make sure your Talknote application has the necessary scopes:
 - `talknote.allfeed.unread`
 
 ## Examples
-
-The `examples/` directory contains practical usage examples:
-
-- `examples/dm_example.rb` - Basic DM operations
-- `examples/group_example.rb` - Basic group operations
-- `examples/dm_csv_export_example.rb` - Export all DM conversations to CSV
-- `examples/group_csv_export_example.rb` - Export all group conversations to CSV
-- `examples/complete_csv_export_example.rb` - Export everything to organized CSV files
-
-### Example: Export all conversations to CSV
-
-```bash
-# Export all DM conversations to CSV
-ruby examples/dm_csv_export_example.rb
-
-# Export all group conversations to CSV
-ruby examples/group_csv_export_example.rb
-
-# Export everything to organized directory
-ruby examples/complete_csv_export_example.rb
-```
-
-**⚠️ Important Notes for CSV Export:**
-- **API rate limit warning**: Export operations are constrained by API rate limits (500 requests per 24 hours per user)
-- Large numbers of conversations may consume significant API quota and take time to export
-- **You must implement appropriate rate limiting delays** between requests to avoid hitting API limits
-- **If the process stops unexpectedly**, wait some time before re-running to avoid further rate limiting
-- Each API call is logged with progress indicators to track export status
-- Export can be interrupted with Ctrl+C and resumed later
-- For very large exports approaching the 500 request limit, consider running the specific DM or Group exporters separately instead of the complete export
-- Monitor your API usage to stay within the 24-hour limit of 500 requests
-
-The CSV export examples will create files with the following structure:
-
-**DM CSV format:**
-- `conversation_id`, `conversation_name`, `message_id`, `user_id`, `user_name`, `message`, `created_at`, `message_type`
-
-**Group CSV format:**
-- `group_id`, `group_name`, `message_id`, `user_id`, `user_name`, `message`, `created_at`, `message_type`, `unread_count`
 
 ### Example: Send a daily report to a group
 
