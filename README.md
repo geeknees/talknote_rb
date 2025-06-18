@@ -234,6 +234,14 @@ end
 
 The authentication token is stored in `~/.config/talknote/token.json` after running the `init` command. The file contains the OAuth 2.0 access token and refresh token.
 
+## API Rate Limits
+
+⚠️ **Important**: The Talknote API has rate limits per user:
+
+- **API execution limit**: 500 requests per 24 hours per user
+
+Please be mindful of these limits when using the API, especially when performing bulk operations like CSV exports or automated tasks. The gem includes built-in rate limiting delays in CSV export examples to help avoid hitting these limits.
+
 ## API Endpoints
 
 This gem supports the following Talknote API endpoints:
