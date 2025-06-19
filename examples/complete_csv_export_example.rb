@@ -160,7 +160,7 @@ def export_all_to_csv(output_dir = "talknote_export_#{Time.now.strftime('%Y%m%d_
 
         begin
           messages_response = client.group_list(group_id)
-          messages = messages_response.dig('data', 'messages') || []
+          messages = messages_response.dig('data', 'msg') || []
           total_messages += messages.size
 
           messages.each do |message|
@@ -168,11 +168,11 @@ def export_all_to_csv(output_dir = "talknote_export_#{Time.now.strftime('%Y%m%d_
               group_id,
               group_name,
               safe_get(message, 'id'),
-              safe_get(message, 'sender_id'),
-              safe_get(message, 'sender_name'),
+              '', # sender_id - not available in API response
+              '', # sender_name - not available in API response
               safe_get(message, 'message'),
-              format_timestamp(safe_get(message, 'created_at')),
-              safe_get(message, 'type', 'text'),
+              '', # created_at - not available in API response
+              'text', # type - default to 'text'
               unread_count
             ]
           end
